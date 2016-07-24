@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">BookWorm</string>
+    <string name="search_edit_text_hint">Search Books</string>
+    <string name="search_botton">search</string>
+</resources>
