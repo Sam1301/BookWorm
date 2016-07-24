@@ -9,7 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -24,17 +24,14 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
     // Log Tag for logging errors
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
-
-    // Google Books Api Url
-    private String BOOKS_API_REQUEST_URL;
-
     // To build base url
     Uri.Builder mBuilder;
+    // Google Books Api Url
+    private String BOOKS_API_REQUEST_URL;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,23 +80,14 @@ public class MainActivity extends AppCompatActivity {
      * @param books ArrayList {@link ArrayList} of Book {@link Book} objects
      */
     private void updateUI(ArrayList<Book> books) {
-        TextView displayTextView = (TextView) findViewById(R.id.display_books_text_view);
+        // ListView to display list of books
+        ListView listView = (ListView) findViewById(R.id.book_list);
 
-        // to clear previous content of TextView
-        displayTextView.setText("");
+        // custom adapter for listView
+        BooksAdapter adapter = new BooksAdapter(this, books);
 
-        // display books info in TextView
-        for (int i = 0; i < books.size(); i++) {
-            Book currentBook = books.get(i);
-            // display title of book
-            displayTextView.append(currentBook.getTitle() + "\n");
-
-            // display author(s) of book, if available
-            if (currentBook.getAuthors() != null) {
-                displayTextView.append(Arrays.toString(currentBook.getAuthors()) + "\n");
-            }
-        }
-
+        // set adapter on listView to display books
+        listView.setAdapter(adapter);
     }
 
     /**
