@@ -1,5 +1,6 @@
 package com.example.sam.bookworm;
 
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -7,7 +8,9 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,7 +31,10 @@ public class MainActivity extends AppCompatActivity {
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
 
     // Google Books Api Url
-    private final String BOOKS_API_REQUEST_URL = "https://www.googleapis.com/books/v1/volumes?q=android&maxResults=1&key=AIzaSyCP0twhbuFHue2jvx9V7VD8XxhHFoQ4Kgs";
+    private String BOOKS_API_REQUEST_URL;
+
+    // To build base url
+    Uri.Builder mBuilder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,12 +42,35 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // set listener on search button
-        Button searchButton = (Button) findViewById(R.id.search_button);
+        final Button searchButton = (Button) findViewById(R.id.search_button);
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                BooksAsyncTask booksAsyncTask = new BooksAsyncTask();
-                booksAsyncTask.execute();
+                // get search query from edit text
+                EditText searchEditText = (EditText) findViewById(R.id.search_edit_text);
+                String searchQuery = searchEditText.getText().toString();
+
+                // Check if something entered in edit text
+                if (searchQuery.equals("")) {
+                    Toast.makeText(MainActivity.this, "Enter Search Query", Toast.LENGTH_SHORT).show();
+                } else {
+                    // build the complete url with search query parameter
+                    mBuilder = new Uri.Builder();
+                    mBuilder.scheme("https")
+                            .authority("www.googleapis.com")
+                            .appendPath("books")
+                            .appendPath("v1")
+                            .appendPath("volumes")
+                            .appendQueryParameter("key", "AIzaSyCP0twhbuFHue2jvx9V7VD8XxhHFoQ4Kgs")
+                            .appendQueryParameter("q", searchEditText.getText().toString());
+
+                    // set the vale for global variable BOOKS_API_REQUEST_URL
+                    BOOKS_API_REQUEST_URL = mBuilder.build().toString();
+
+                    // fire off booksAsyncTask to connect to the given url
+                    BooksAsyncTask booksAsyncTask = new BooksAsyncTask();
+                    booksAsyncTask.execute();
+                }
             }
         });
     }
@@ -62,8 +91,13 @@ public class MainActivity extends AppCompatActivity {
         // display books info in TextView
         for (int i = 0; i < books.size(); i++) {
             Book currentBook = books.get(i);
-            displayTextView.append(currentBook.getTitle() + "\n" +
-                    Arrays.toString(currentBook.getAuthor()));
+            // display title of book
+            displayTextView.append(currentBook.getTitle() + "\n");
+
+            // display author(s) of book, if available
+            if (currentBook.getAuthors() != null) {
+                displayTextView.append(Arrays.toString(currentBook.getAuthors()) + "\n");
+            }
         }
 
     }
@@ -170,8 +204,8 @@ public class MainActivity extends AppCompatActivity {
                 // read from the inputStream
                 jsonResponse = readFromStream(inputStream);
             } catch (IOException e) {
-                e.printStackTrace();
                 Log.e(LOG_TAG, "Problem opening or connecting to url");
+                e.printStackTrace();
             } finally {
 
                 if (httpURLConnection != null) {
@@ -191,7 +225,7 @@ public class MainActivity extends AppCompatActivity {
          * @return json response string
          */
         private String readFromStream(InputStream inputStream) throws IOException {
-            // use string builder to build json string
+            // use string mBuilder to build json string
             StringBuilder jsonResponseBuilder = new StringBuilder();
 
 
@@ -233,11 +267,16 @@ public class MainActivity extends AppCompatActivity {
 
                     // get authors of book
                     JSONArray authorJSONArray = volumeInfo.optJSONArray("authors");
-                    String[] authors = new String[authorJSONArray.length()];
-                    for (int k = 0; k < authorJSONArray.length(); k++) {
-                        authors[k] = authorJSONArray.optString(k);
-                    }
+                    String[] authors = null;
+                    // some books don't have authors info
+                    if (authorJSONArray != null) {
+                        authors = new String[authorJSONArray.length()];
 
+                        // copy authors information in array
+                        for (int k = 0; k < authorJSONArray.length(); k++) {
+                            authors[k] = authorJSONArray.optString(k);
+                        }
+                    }
                     // add current book to list
                     books.add(new Book(title, authors));
                 }

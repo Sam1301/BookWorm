@@ -24,7 +24,7 @@ public class Book {
      * Returns authors of book
      * @return {@link Book#mAuthors}
      */
-    public String[] getAuthor() {
+    public String[] getAuthors() {
         return mAuthors;
     }
 
