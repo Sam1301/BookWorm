@@ -192,6 +192,13 @@ public class MainActivity extends AppCompatActivity {
                 // Connect to server and catch SocketTimeoutException and IOException
                 httpURLConnection.connect();
 
+
+                // check if the status code is not 200, return empty string
+                if (httpURLConnection.getResponseCode() != 200) {
+                    Log.e(LOG_TAG, "Error Status code: " + httpURLConnection.getResponseCode());
+                    return "";
+                }
+
                 // get input stream and catch UnknownServerException and IOException
                 inputStream = httpURLConnection.getInputStream();
 
