@@ -5,5 +5,5 @@
     <string name="star_icon_content_des">star_icon</string>
     <string name="string_format">%s</string>
     <string name="search_icon_desc">search icon</string>
-    <string name="default_text">Enter a Search Query to display a list of matching books!</string>
+    <string name="default_text">Enter a Search Query to display a list of matching mBooks!</string>
 </resources>

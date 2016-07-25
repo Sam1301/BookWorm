@@ -1,5 +1,6 @@
 package com.example.sam.bookworm;
 
+import android.app.FragmentManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -30,6 +31,10 @@ public class MainActivity extends AppCompatActivity {
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
     // To build base url
     Uri.Builder mBuilder;
+    // retained fragment while configuration changes
+    private RetainedFragment dataFragment;
+    // books array list
+    private ArrayList<Book> mBooks;
     // Google Books Api Url
     private String BOOKS_API_REQUEST_URL;
 
@@ -37,6 +42,19 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // find the retained fragment on activity restarts
+        FragmentManager fragmentManager = getFragmentManager();
+        dataFragment = (RetainedFragment) fragmentManager.findFragmentByTag("data");
+
+        // create the fragment and data the first time
+        if (dataFragment == null) {
+            // add fragment
+            dataFragment = new RetainedFragment();
+            fragmentManager.beginTransaction().add(dataFragment, "data").commit();
+            // load the data from the web
+            dataFragment.setBooks(mBooks);
+        }
 
         // set listener on search button
         final ImageView searchButton = (ImageView) findViewById(R.id.search_button);
@@ -72,6 +90,13 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        // on configuration changes update UI with current list of books
+        if (dataFragment.getBooks() != null) {
+            // update the current list of books being displayed
+            mBooks = dataFragment.getBooks();
+            updateUI(mBooks);
+        }
     }
 
 
@@ -94,6 +119,14 @@ public class MainActivity extends AppCompatActivity {
 
         // set adapter on listView to display books
         listView.setAdapter(adapter);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        // store the data in the fragment
+        dataFragment.setBooks(mBooks);
     }
 
     /**
@@ -143,6 +176,9 @@ public class MainActivity extends AppCompatActivity {
             if (books == null) {
                 return;
             }
+
+            // update current list of books
+            mBooks = books;
 
             // update the UI with the received book object
             updateUI(books);
@@ -318,5 +354,4 @@ public class MainActivity extends AppCompatActivity {
             return books;
         }
     }
-
 }
