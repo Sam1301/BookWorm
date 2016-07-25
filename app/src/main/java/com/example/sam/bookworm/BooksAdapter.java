@@ -86,9 +86,9 @@ public class BooksAdapter extends ArrayAdapter<Book> {
      */
     private String getTextForPrice(float price, String currencySymbol) {
         if (price == -1.0f)
-            return "Not Available";
+            return getContext().getString(R.string.not_available);
         else if (price == 0.0f)
-            return "FREE";
+            return getContext().getString(R.string.free);
         else {
             // get the right currency symbol and concatenate with price
             Currency currency = Currency.getInstance(currencySymbol);
