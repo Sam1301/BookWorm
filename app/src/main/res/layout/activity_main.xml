@@ -43,6 +43,7 @@
         android:padding="@dimen/activity_horizontal_margin"
         android:text="@string/default_text"
         android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="@color/colorSecondary"
         android:visibility="gone" />
     <ListView
         android:id="@+id/book_list"
