@@ -7,10 +7,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // set listener on search button
-        final Button searchButton = (Button) findViewById(R.id.search_button);
+        final ImageView searchButton = (ImageView) findViewById(R.id.search_button);
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -49,7 +49,9 @@ public class MainActivity extends AppCompatActivity {
 
                 // Check if something entered in edit text
                 if (searchQuery.equals("")) {
-                    Toast.makeText(MainActivity.this, "Enter Search Query", Toast.LENGTH_SHORT).show();
+                    // make default text appear
+                    TextView defaultTextView = (TextView) findViewById(R.id.default_text_view);
+                    defaultTextView.setVisibility(View.VISIBLE);
                 } else {
                     // build the complete url with search query parameter
                     mBuilder = new Uri.Builder();
@@ -82,6 +84,10 @@ public class MainActivity extends AppCompatActivity {
     private void updateUI(ArrayList<Book> books) {
         // ListView to display list of books
         ListView listView = (ListView) findViewById(R.id.book_list);
+
+        // hide default text
+        TextView defaultTextView = (TextView) findViewById(R.id.default_text_view);
+        defaultTextView.setVisibility(View.GONE);
 
         // custom adapter for listView
         BooksAdapter adapter = new BooksAdapter(this, books);
@@ -249,13 +255,41 @@ public class MainActivity extends AppCompatActivity {
                 for (int i = 0; i < items.length() ; i++) {
                     // find current book
                     JSONObject currentBook = items.optJSONObject(i);
+
+                    // get sale info for current book
+                    JSONObject saleInfo = currentBook.optJSONObject("saleInfo");
+
+                    // check saleability for current book and get price and currency code for
+                    // current book
+                    // set value for price -1 if book is not available
+                    // set value for price if book is available
+                    // set value for price if book is for pre order
+                    // set value for price 0 if book is free
+                    // set value for currency code null if book is free or not available
+                    String saleability = saleInfo.optString("saleability");
+                    float price = -1;
+                    String currencyCode = null;
+                    if (saleability.equals("FOR_SALE") || saleability.equals("FOR_PRE_ORDER")) {
+                        JSONObject retailPrice = saleInfo.optJSONObject("retailPrice");
+                        price = (float) retailPrice.optDouble("amount");
+                        currencyCode = retailPrice.optString("currencyCode");
+                    } else if (saleability.equals("FREE")) {
+                        price = 0;
+                    }
+
+                    // get volume info for current book
                     JSONObject volumeInfo = currentBook.optJSONObject("volumeInfo");
                     // get title of book
                     String title = volumeInfo.optString("title");
 
+                    // get rating of book
+                    // rating is null, if not available
+                    float rating = (float) volumeInfo.optDouble("averageRating");
+
                     // get authors of book
                     JSONArray authorJSONArray = volumeInfo.optJSONArray("authors");
                     String[] authors = null;
+
                     // some books don't have authors info
                     if (authorJSONArray != null) {
                         authors = new String[authorJSONArray.length()];
@@ -266,7 +300,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                     // add current book to list
-                    books.add(new Book(title, authors));
+                    books.add(new Book(title, authors, rating, price, currencyCode));
                 }
 
             } catch (JSONException e) {

@@ -8,22 +8,42 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.example.sam.bookworm.MainActivity">
 
-    <EditText
-        android:id="@+id/search_edit_text"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="@dimen/activity_horizontal_margin"
-        android:layout_marginRight="@dimen/activity_horizontal_margin"
-        android:hint="@string/search_edit_text_hint"/>
-    <Button
-        android:id="@+id/search_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="@dimen/activity_horizontal_margin"
-        android:layout_marginRight="@dimen/activity_horizontal_margin"
-        android:text="@string/search_bottom"
-        android:textAllCaps="true"/>
+        android:orientation="horizontal">
 
+        <EditText
+            android:id="@+id/search_edit_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/activity_horizontal_margin"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_weight="1"
+            android:hint="@string/search_edit_text_hint" />
+
+        <ImageView
+            android:id="@+id/search_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:layout_marginRight="@dimen/activity_horizontal_margin"
+            android:background="?android:attr/selectableItemBackground"
+            android:contentDescription="@string/search_icon_desc"
+            android:src="@drawable/ic_search_black_24dp"
+            android:tint="@color/colorAccent" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/default_text_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/activity_horizontal_margin"
+        android:text="@string/default_text"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:visibility="gone" />
     <ListView
         android:id="@+id/book_list"
         android:layout_width="match_parent"
