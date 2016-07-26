@@ -1,6 +1,9 @@
 package com.example.sam.bookworm;
 
 import android.app.FragmentManager;
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -11,7 +14,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -31,10 +34,13 @@ public class MainActivity extends AppCompatActivity {
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
     // To build base url
     Uri.Builder mBuilder;
+
     // retained fragment while configuration changes
     private RetainedFragment dataFragment;
+
     // books array list
     private ArrayList<Book> mBooks;
+
     // Google Books Api Url
     private String BOOKS_API_REQUEST_URL;
 
@@ -68,8 +74,8 @@ public class MainActivity extends AppCompatActivity {
                 // Check if something entered in edit text
                 if (searchQuery.equals("")) {
                     // make default text appear
-                    TextView defaultTextView = (TextView) findViewById(R.id.default_text_view);
-                    defaultTextView.setVisibility(View.VISIBLE);
+                    Toast.makeText(MainActivity.this, "Enter name of Book", Toast.LENGTH_SHORT)
+                            .show();
                 } else {
                     // build the complete url with search query parameter
                     mBuilder = new Uri.Builder();
@@ -84,12 +90,28 @@ public class MainActivity extends AppCompatActivity {
                     // set the vale for global variable BOOKS_API_REQUEST_URL
                     BOOKS_API_REQUEST_URL = mBuilder.build().toString();
 
-                    // fire off booksAsyncTask to connect to the given url
-                    BooksAsyncTask booksAsyncTask = new BooksAsyncTask();
-                    booksAsyncTask.execute();
+                    // check if internet connection is available, otherwise display a Toast message
+                    ConnectivityManager connectivityManager = (ConnectivityManager)
+                            getSystemService(Context.CONNECTIVITY_SERVICE);
+                    NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+                    if (networkInfo != null && networkInfo.isConnected()) {
+                        // fire off booksAsyncTask to connect to the given url
+                        BooksAsyncTask booksAsyncTask = new BooksAsyncTask();
+                        booksAsyncTask.execute();
+                    } else {
+                        Toast.makeText(MainActivity.this, "No Internet Connection Available",
+                                Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
         });
+
+
+        // ListView to display list of books
+        ListView listView = (ListView) findViewById(R.id.book_list);
+
+        // display default text when list view is empty
+        listView.setEmptyView(findViewById(R.id.default_text_view));
 
         // on configuration changes update UI with current list of books
         if (dataFragment.getBooks() != null) {
@@ -109,10 +131,6 @@ public class MainActivity extends AppCompatActivity {
     private void updateUI(ArrayList<Book> books) {
         // ListView to display list of books
         ListView listView = (ListView) findViewById(R.id.book_list);
-
-        // hide default text
-        TextView defaultTextView = (TextView) findViewById(R.id.default_text_view);
-        defaultTextView.setVisibility(View.GONE);
 
         // custom adapter for listView
         BooksAdapter adapter = new BooksAdapter(this, books);
@@ -295,57 +313,59 @@ public class MainActivity extends AppCompatActivity {
             try {
                 JSONObject rootJsonObject = new JSONObject(jsonResponse);
                 JSONArray items = rootJsonObject.optJSONArray("items");
-                for (int i = 0; i < items.length() ; i++) {
-                    // find current book
-                    JSONObject currentBook = items.optJSONObject(i);
+                // check if matching results were found
+                if (items != null) {
+                    for (int i = 0; i < items.length(); i++) {
+                        // find current book
+                        JSONObject currentBook = items.optJSONObject(i);
 
-                    // get sale info for current book
-                    JSONObject saleInfo = currentBook.optJSONObject("saleInfo");
+                        // get sale info for current book
+                        JSONObject saleInfo = currentBook.optJSONObject("saleInfo");
 
-                    // check saleability for current book and get price and currency code for
-                    // current book
-                    // set value for price -1 if book is not available
-                    // set value for price if book is available
-                    // set value for price if book is for pre order
-                    // set value for price 0 if book is free
-                    // set value for currency code null if book is free or not available
-                    String saleability = saleInfo.optString("saleability");
-                    float price = -1;
-                    String currencyCode = null;
-                    if (saleability.equals("FOR_SALE") || saleability.equals("FOR_PRE_ORDER")) {
-                        JSONObject retailPrice = saleInfo.optJSONObject("retailPrice");
-                        price = (float) retailPrice.optDouble("amount");
-                        currencyCode = retailPrice.optString("currencyCode");
-                    } else if (saleability.equals("FREE")) {
-                        price = 0;
-                    }
-
-                    // get volume info for current book
-                    JSONObject volumeInfo = currentBook.optJSONObject("volumeInfo");
-                    // get title of book
-                    String title = volumeInfo.optString("title");
-
-                    // get rating of book
-                    // rating is null, if not available
-                    float rating = (float) volumeInfo.optDouble("averageRating");
-
-                    // get authors of book
-                    JSONArray authorJSONArray = volumeInfo.optJSONArray("authors");
-                    String[] authors = null;
-
-                    // some books don't have authors info
-                    if (authorJSONArray != null) {
-                        authors = new String[authorJSONArray.length()];
-
-                        // copy authors information in array
-                        for (int k = 0; k < authorJSONArray.length(); k++) {
-                            authors[k] = authorJSONArray.optString(k);
+                        // check saleability for current book and get price and currency code for
+                        // current book
+                        // set value for price -1 if book is not available
+                        // set value for price if book is available
+                        // set value for price if book is for pre order
+                        // set value for price 0 if book is free
+                        // set value for currency code null if book is free or not available
+                        String saleability = saleInfo.optString("saleability");
+                        float price = -1;
+                        String currencyCode = null;
+                        if (saleability.equals("FOR_SALE") || saleability.equals("FOR_PRE_ORDER")) {
+                            JSONObject retailPrice = saleInfo.optJSONObject("retailPrice");
+                            price = (float) retailPrice.optDouble("amount");
+                            currencyCode = retailPrice.optString("currencyCode");
+                        } else if (saleability.equals("FREE")) {
+                            price = 0;
                         }
-                    }
-                    // add current book to list
-                    books.add(new Book(title, authors, rating, price, currencyCode));
-                }
 
+                        // get volume info for current book
+                        JSONObject volumeInfo = currentBook.optJSONObject("volumeInfo");
+                        // get title of book
+                        String title = volumeInfo.optString("title");
+
+                        // get rating of book
+                        // rating is null, if not available
+                        float rating = (float) volumeInfo.optDouble("averageRating");
+
+                        // get authors of book
+                        JSONArray authorJSONArray = volumeInfo.optJSONArray("authors");
+                        String[] authors = null;
+
+                        // some books don't have authors info
+                        if (authorJSONArray != null) {
+                            authors = new String[authorJSONArray.length()];
+
+                            // copy authors information in array
+                            for (int k = 0; k < authorJSONArray.length(); k++) {
+                                authors[k] = authorJSONArray.optString(k);
+                            }
+                        }
+                        // add current book to list
+                        books.add(new Book(title, authors, rating, price, currencyCode));
+                    }
+                }
             } catch (JSONException e) {
                 e.printStackTrace();
             }

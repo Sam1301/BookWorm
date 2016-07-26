@@ -36,6 +36,11 @@
 
     </LinearLayout>
 
+    <ListView
+        android:id="@+id/book_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
     <TextView
         android:id="@+id/default_text_view"
         android:layout_width="match_parent"
@@ -45,8 +50,4 @@
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:textColor="@color/colorSecondary"
         android:visibility="gone" />
-    <ListView
-        android:id="@+id/book_list"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
 </LinearLayout>

@@ -5,7 +5,8 @@
     <string name="star_icon_content_des">star_icon</string>
     <string name="string_format">%s</string>
     <string name="search_icon_desc">search icon</string>
-    <string name="default_text">Enter a Search Query to display a list of matching mBooks!</string>
+    <string name="default_text">Enter a Search Query to display a list of matching Books!</string>
     <string name="not_available">Not Available</string>
     <string name="free">FREE</string>
+    <string name="no_result">No results Found</string>
 </resources>

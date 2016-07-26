@@ -3,6 +3,8 @@
     package="com.example.sam.bookworm">
     <!--ask for internet access permission-->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!--ask for accessing network state-->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="true"
